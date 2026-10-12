@@ -1845,6 +1845,33 @@ public partial class StrmSyncService
 
             _logger.LogInformation("Batch {Batch}: Found {Count} unique movies", batchIndex + 1, batchMovies.Count);
 
+            // Apply catalog rules before snapshot tracking, metadata lookup and STRM generation.
+            var categoryNamesById = categories.ToDictionary(
+                category => category.CategoryId,
+                category => category.CategoryName);
+
+            int beforeCatalogFilter = batchMovies.Count;
+
+            batchMovies = batchMovies
+                .Where(movie => CatalogRuleFilter.ShouldIncludeMovie(
+                    movie.Stream.Name,
+                    movie.CategoryIds.Select(categoryId =>
+                        categoryNamesById.TryGetValue(categoryId, out var categoryName)
+                            ? categoryName
+                            : string.Empty)))
+                .ToList();
+
+            int excludedByCatalogRules = beforeCatalogFilter - batchMovies.Count;
+
+            if (excludedByCatalogRules > 0)
+            {
+                _logger.LogInformation(
+                    "Catalog rules: included {Included} movies and excluded {Excluded} movies in batch {Batch}",
+                    batchMovies.Count,
+                    excludedByCatalogRules,
+                    batchIndex + 1);
+            }
+
             // Track all collected movies for snapshot building
             foreach (var (stream, _) in batchMovies)
             {
