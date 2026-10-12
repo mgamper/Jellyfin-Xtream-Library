@@ -180,6 +180,27 @@ public class ProviderConfig
     /// </summary>
     public string RegexRemovalPatterns { get; set; } = string.Empty;
 
+    // =====================
+    // Catalog Rules
+    // =====================
+
+    /// <summary>
+    /// Gets or sets a value indicating whether catalog rule filtering is enabled.
+    /// </summary>
+    public bool EnableCatalogRules { get; set; }
+
+    /// <summary>
+    /// Gets or sets excluded movie title prefixes, one per line.
+    /// </summary>
+    public string CatalogExcludedMoviePrefixes { get; set; } =
+        "EN -\nES -\nES-DO -\nES- -\nFR -\nIT -\nAR -\nTR -\nRU -\nSOC -";
+
+    /// <summary>
+    /// Gets or sets excluded movie regular expressions, one per line.
+    /// </summary>
+    public string CatalogExcludedMoviePatterns { get; set; } =
+        "\\bvs\\.?\\b\n\\bOlympics?\\b\n\\bBasketball\\b\n\\bSoccer\\b\n\\bUFC\\s+on\\b\n\\bFight\\s+Night\\b\n\\bBundesliga\\b\n\\bPremier\\s+League\\b";
+
     /// <summary>
     /// Gets or sets a value indicating whether to download artwork from the provider
     /// for content that could not be matched to TMDb/TVDb.
