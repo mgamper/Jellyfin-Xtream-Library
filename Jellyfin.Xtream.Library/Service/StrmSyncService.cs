@@ -1578,12 +1578,22 @@ public partial class StrmSyncService
         // GitHub #88. Folder each groupable TMDB id lives in. Seeded from the snapshot so the
         // choice made on an earlier run keeps holding, then extended with ids first seen this run.
         // Only new movies consult it: nothing already on disk is moved by a sync.
-        bool groupByTmdb = provider.GroupMoviesByTmdbId;
+        bool lightweightMovieSync = provider.LightweightMovieSync;
+        bool groupByTmdb = provider.GroupMoviesByTmdbId && !lightweightMovieSync;
+
+        if (lightweightMovieSync)
+        {
+            _logger.LogInformation(
+                "Lightweight movie sync enabled for provider {Provider}: individual VOD detail requests, provider TMDb grouping and proactive provider media info are disabled",
+                provider.Name);
+        }
 
         // Grouping keys on the id the provider returns in get_vod_info, so that call has to happen
         // even when the name-based metadata lookup is off. Without this, turning grouping on with
         // lookup off would silently do nothing.
-        bool needProviderTmdbId = globalConfig.EnableMetadataLookup || groupByTmdb;
+        bool needProviderTmdbId =
+            !lightweightMovieSync &&
+            (globalConfig.EnableMetadataLookup || groupByTmdb);
         // Keyed by TMDB id, holding the stream that named the folder. Ownership is tracked by
         // stream id rather than by comparing names: two streams can share a title and a year, and
         // comparing names would then make neither of them a guest, so both would claim the same
@@ -1707,8 +1717,14 @@ public partial class StrmSyncService
 
         var parallelism = Math.Max(1, provider.SyncParallelism);
         var enableMetadataLookup = globalConfig.EnableMetadataLookup;
-        var enableProactiveMediaInfo = provider.EnableProactiveMediaInfo;
-        var enableDispatcharrMode = provider.EnableDispatcharrMode && !string.IsNullOrEmpty(provider.DispatcharrApiUser);
+        var enableProactiveMediaInfo =
+            provider.EnableProactiveMediaInfo &&
+            !lightweightMovieSync;
+
+        var enableDispatcharrMode =
+            provider.EnableDispatcharrMode &&
+            !lightweightMovieSync &&
+            !string.IsNullOrEmpty(provider.DispatcharrApiUser);
         if (enableDispatcharrMode)
         {
             _dispatcharrClient.RequestDelayMs = provider.RequestDelayMs;

@@ -75,6 +75,12 @@ public class ProviderConfig
     public bool SyncMovies { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether movies are synced from the VOD listing
+    /// without requesting provider details for every individual movie.
+    /// </summary>
+    public bool LightweightMovieSync { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to sync series content.
     /// </summary>
     public bool SyncSeries { get; set; } = true;

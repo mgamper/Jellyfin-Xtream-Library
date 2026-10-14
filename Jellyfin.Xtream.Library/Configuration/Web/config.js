@@ -67,6 +67,7 @@ var XtreamLibraryConfig = (function () {
             UserAgent: '',
             LibraryPath: index === 0 ? '/config/xtream-library' : '/config/xtream-library-' + (index + 1),
             SyncMovies: true,
+            LightweightMovieSync: false,
             SyncSeries: true,
             SelectedVodCategoryIds: [],
             SelectedSeriesCategoryIds: [],
@@ -140,6 +141,10 @@ var XtreamLibraryConfig = (function () {
         document.getElementById('txtUserAgent').value = p.UserAgent || '';
         document.getElementById('txtLibraryPath').value = p.LibraryPath || '/config/xtream-library';
         document.getElementById('chkSyncMovies').checked = p.SyncMovies !== false;
+        var chkLightweightMovieSync = document.getElementById('chkLightweightMovieSync');
+        if (chkLightweightMovieSync) {
+            chkLightweightMovieSync.checked = p.LightweightMovieSync === true;
+        }
         document.getElementById('chkSyncSeries').checked = p.SyncSeries !== false;
         document.getElementById('chkCleanupOrphans').checked = p.CleanupOrphans !== false;
         document.getElementById('txtOrphanSafetyThreshold').value = Math.round((p.OrphanSafetyThreshold != null ? p.OrphanSafetyThreshold : 0.20) * 100);
@@ -257,6 +262,10 @@ var XtreamLibraryConfig = (function () {
         p.UserAgent = document.getElementById('txtUserAgent').value.trim();
         p.LibraryPath = document.getElementById('txtLibraryPath').value.trim();
         p.SyncMovies = document.getElementById('chkSyncMovies').checked;
+        var chkLightweightMovieSyncSave = document.getElementById('chkLightweightMovieSync');
+        if (chkLightweightMovieSyncSave) {
+            p.LightweightMovieSync = chkLightweightMovieSyncSave.checked;
+        }
         p.SyncSeries = document.getElementById('chkSyncSeries').checked;
         p.CleanupOrphans = document.getElementById('chkCleanupOrphans').checked;
         var orphanSafetyThresholdValue = parseInt(document.getElementById('txtOrphanSafetyThreshold').value);

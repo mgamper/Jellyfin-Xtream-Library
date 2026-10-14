@@ -348,6 +348,23 @@
                                     Path where STRM files will be created. Use /config/xtream-library for Docker setups.
                                 </div>
                             </div>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label class="emby-checkbox-label">
+                                    <input is="emby-checkbox"
+                                           type="checkbox"
+                                           id="chkLightweightMovieSync"
+                                           name="LightweightMovieSync" />
+                                    <span>Lightweight Movie Sync</span>
+                                </label>
+                                <div class="fieldDescription checkboxFieldDescription">
+                                    Reduces provider load by avoiding individual detail requests for every movie.
+                                    Enable this if large movie syncs cause HTTP 403, 429 or 502 errors, timeouts,
+                                    or temporary connection problems. Provider TMDb grouping, proactive movie
+                                    media information and Dispatcharr movie discovery are disabled while enabled.
+                                    Series synchronization is not affected.
+                                </div>
+                            </div>
+
                             <div class="inputContainer">
                                 <label class="inputLabel inputLabelUnfocused" for="selSyncScheduleType">Sync Schedule</label>
                                 <select is="emby-select" id="selSyncScheduleType" name="SyncScheduleType">
@@ -552,19 +569,19 @@
                                     </div>
                                 </div>
                                 <div class="inputContainer">
-                                    <label class="inputLabel inputLabelUnfocused" for="txtRequestDelayMs">Request Delay (ms)</label>
-                                    <input is="emby-input" type="number" id="txtRequestDelayMs" name="RequestDelayMs"
-                                           min="0" max="5000" step="50" />
+                                    <label class="inputLabel inputLabelUnfocused" for="txtRequestDelayMs">Provider Request Delay</label>
+                                    <select is="emby-select" id="txtRequestDelayMs" name="RequestDelayMs">
+                                        <option value="0">0 ms - No additional delay</option>
+                                        <option value="50">50 ms - Default</option>
+                                        <option value="200">200 ms - Gentle</option>
+                                        <option value="500">500 ms - Conservative</option>
+                                        <option value="1000">1000 ms - Very conservative</option>
+                                    </select>
                                     <div class="fieldDescription">
-                                        Minimum gap in milliseconds between requests to your provider (0-5000), shared by all
-                                        parallel workers: 50 means at most 20 requests a second, whatever Sync Parallelism is set to.
-                                        If the provider answers 429 (too many requests), every request to it waits out the retry delay,
-                                        not only the one that was refused. Default: 50ms. Set to 0 for no gap.
-                                        <br /><br />
-                                        Some providers never answer 429 and simply stop accepting connections after a few hundred
-                                        requests in a few minutes; the sync then shows timeouts or 504 errors instead. If that
-                                        happens on your first sync, raise this to 200 or more. 200 ms has been confirmed to keep
-                                        such a provider happy through a full sync of a large library.
+                                        Adds a minimum gap between provider API requests to reduce server load.
+                                        Increase this if large syncs cause HTTP 403, 429 or 502 errors, timeouts,
+                                        504 errors, or temporary connection problems. Higher values make synchronization
+                                        slower. This setting works independently of Lightweight Movie Sync.
                                     </div>
                                 </div>
                                 <div class="inputContainer">

@@ -293,6 +293,43 @@ public class StrmNameCollisionTests : IDisposable
     // HasDuplicateLibraryPaths but nothing refuses the config. A per-provider claim set would let
     // the second provider overwrite the first one's file with nothing counted.
     [Fact]
+    public async Task LightweightMovieSync_CreatesStrmWithoutRequestingVodInfo()
+    {
+        var stream = new StreamInfo
+        {
+            StreamId = 9001,
+            Name = "Lightweight Movie (2024)",
+            ContainerExtension = "mkv",
+            CategoryId = 1,
+        };
+
+        await RunMovieSyncAsync(
+            [stream],
+            useShippedDefaults: false,
+            lightweightMovieSync: true).ConfigureAwait(true);
+
+        _client.Verify(
+            client => client.GetVodInfoAsync(
+                It.IsAny<ConnectionInfo>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+
+        var strmFiles = Directory.GetFiles(
+            Path.Combine(_libraryPath, "Movies"),
+            "*.strm",
+            SearchOption.AllDirectories);
+
+        strmFiles.Should().ContainSingle();
+
+        var content = await File.ReadAllTextAsync(strmFiles[0])
+            .ConfigureAwait(true);
+
+        content.Should().Be(
+            "http://provider0.test/movie/u/p/9001.mkv");
+    }
+
+    [Fact]
     public async Task TwoProvidersSharingALibraryPath_StillDetectTheCollision()
     {
         _client.Setup(c => c.GetVodCategoryAsync(It.IsAny<ConnectionInfo>(), It.IsAny<CancellationToken>()))
@@ -870,14 +907,28 @@ public class StrmNameCollisionTests : IDisposable
     private Task<SyncResult> RunMovieSyncAsync(params StreamInfo[] streams)
         => RunMovieSyncAsync(streams, useShippedDefaults: false);
 
-    private async Task<SyncResult> RunMovieSyncAsync(StreamInfo[] streams, bool useShippedDefaults, bool proactiveMediaInfo = false, bool groupByTmdbId = false, bool cleanupOrphans = false)
+    private async Task<SyncResult> RunMovieSyncAsync(
+        StreamInfo[] streams,
+        bool useShippedDefaults,
+        bool proactiveMediaInfo = false,
+        bool groupByTmdbId = false,
+        bool cleanupOrphans = false,
+        bool lightweightMovieSync = false)
     {
         _client.Setup(c => c.GetVodCategoryAsync(It.IsAny<ConnectionInfo>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Category> { new() { CategoryId = 1, CategoryName = "Movies" } });
         _client.Setup(c => c.GetVodStreamsByCategoryAsync(It.IsAny<ConnectionInfo>(), 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<StreamInfo>(streams));
 
-        return await RunSyncAsync(syncMovies: true, syncSeries: false, useShippedDefaults, providerCount: 1, proactiveMediaInfo, groupByTmdbId, cleanupOrphans).ConfigureAwait(true);
+        return await RunSyncAsync(
+            syncMovies: true,
+            syncSeries: false,
+            useShippedDefaults,
+            providerCount: 1,
+            proactiveMediaInfo,
+            groupByTmdbId,
+            cleanupOrphans,
+            lightweightMovieSync).ConfigureAwait(true);
     }
 
     private Task<SyncResult> RunSyncAsync(bool syncMovies, bool syncSeries, bool useShippedDefaults)
@@ -886,7 +937,15 @@ public class StrmNameCollisionTests : IDisposable
     private Task<SyncResult> RunSyncAsync(bool syncMovies, bool syncSeries, bool useShippedDefaults, int providerCount)
         => RunSyncAsync(syncMovies, syncSeries, useShippedDefaults, providerCount, proactiveMediaInfo: false, groupByTmdbId: false, cleanupOrphans: false);
 
-    private async Task<SyncResult> RunSyncAsync(bool syncMovies, bool syncSeries, bool useShippedDefaults, int providerCount, bool proactiveMediaInfo, bool groupByTmdbId, bool cleanupOrphans)
+    private async Task<SyncResult> RunSyncAsync(
+        bool syncMovies,
+        bool syncSeries,
+        bool useShippedDefaults,
+        int providerCount,
+        bool proactiveMediaInfo,
+        bool groupByTmdbId,
+        bool cleanupOrphans,
+        bool lightweightMovieSync = false)
     {
         var appPaths = new Mock<IServerApplicationPaths>();
         appPaths.Setup(p => p.PluginConfigurationsPath).Returns(_libraryPath);
@@ -906,6 +965,7 @@ public class StrmNameCollisionTests : IDisposable
             Password = "p",
             LibraryPath = _libraryPath,
             SyncMovies = syncMovies,
+            LightweightMovieSync = lightweightMovieSync,
             SyncSeries = syncSeries,
             CleanupOrphans = cleanupOrphans,
             EnableIncrementalSync = useShippedDefaults,
