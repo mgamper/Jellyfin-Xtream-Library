@@ -1858,7 +1858,8 @@ public partial class StrmSyncService
                     movie.CategoryIds.Select(categoryId =>
                         categoryNamesById.TryGetValue(categoryId, out var categoryName)
                             ? categoryName
-                            : string.Empty)))
+                            : string.Empty),
+                    provider))
                 .ToList();
 
             int excludedByCatalogRules = beforeCatalogFilter - batchMovies.Count;

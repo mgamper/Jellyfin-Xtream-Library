@@ -13,65 +13,140 @@ using System.Text.RegularExpressions;
 namespace Jellyfin.Xtream.Library.Service;
 
 /// <summary>
-/// Applies catalog rules before metadata lookup and STRM generation.
+/// Applies provider-specific catalog rules before metadata lookup and STRM generation.
 /// </summary>
 internal static class CatalogRuleFilter
 {
-    private static readonly string[] ExcludedMoviePrefixes =
-    [
-        "EN -",
-        "ES -",
-        "ES-DO -",
-        "ES- -",
-        "FR -",
-        "IT -",
-        "AR -",
-        "TR -",
-        "RU -",
-        "SOC -",
-    ];
-
-    private static readonly Regex[] ExcludedMoviePatterns =
-    [
-        new(@"\bvs\.?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new(@"\bOlympics?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new(@"\bBasketball\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new(@"\bSoccer\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new(@"\bUFC\s+on\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new(@"\bFight\s+Night\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new(@"\bBundesliga\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new(@"\bPremier\s+League\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-    ];
-
     /// <summary>
     /// Determines whether a movie should continue through the sync pipeline.
     /// </summary>
     /// <param name="title">Original provider title.</param>
     /// <param name="categoryNames">Provider categories containing the movie.</param>
+    /// <param name="provider">Provider-specific catalog rule configuration.</param>
     /// <returns>True when the movie should be included.</returns>
     internal static bool ShouldIncludeMovie(
         string? title,
-        IEnumerable<string?> categoryNames)
+        IEnumerable<string?> categoryNames,
+        ProviderConfig provider)
     {
-        var value = title?.Trim() ?? string.Empty;
+        if (!provider.EnableCatalogRules)
+        {
+            return true;
+        }
 
+        var value = title?.Trim() ?? string.Empty;
         if (value.Length == 0)
         {
             return false;
         }
 
-        if (ExcludedMoviePrefixes.Any(prefix =>
+        var categories = categoryNames
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name!.Trim())
+            .ToArray();
+
+        var excludedPrefixes = ParseList(provider.CatalogExcludedMoviePrefixes);
+        if (excludedPrefixes.Any(prefix =>
             value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
         {
             return false;
         }
 
-        var searchableText = string.Join(
-            " ",
-            new[] { value }.Concat(
-                categoryNames.Where(name => !string.IsNullOrWhiteSpace(name))));
+        var searchableText = string.Join(" ", new[] { value }.Concat(categories));
+        foreach (var pattern in ParseList(provider.CatalogExcludedMoviePatterns))
+        {
+            try
+            {
+                if (Regex.IsMatch(
+                    searchableText,
+                    pattern,
+                    RegexOptions.IgnoreCase,
+                    TimeSpan.FromSeconds(1)))
+                {
+                    return false;
+                }
+            }
+            catch (ArgumentException)
+            {
+                // Ignore invalid user-supplied regular expressions.
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                // A pathological expression must not stop the complete sync.
+            }
+        }
 
-        return !ExcludedMoviePatterns.Any(
-            pattern => pattern.IsMatch(searchableText));
+        var includedTags = ParseList(provider.CatalogIncludedTags);
+        if (includedTags.Length == 0)
+        {
+            return true;
+        }
+
+        bool includeMatch = false;
+
+        if (provider.CatalogMatchProviderCategories)
+        {
+            includeMatch = categories.Any(category =>
+                includedTags.Any(tag => ContainsWholeTag(category, tag)));
+        }
+
+        if (!includeMatch && provider.CatalogMatchTitlePrefixes)
+        {
+            includeMatch = includedTags.Any(tag =>
+                StartsWithTag(value, tag));
+        }
+
+        if (includeMatch)
+        {
+            return true;
+        }
+
+        return provider.CatalogNoMatchBehavior.Equals(
+            "Keep",
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string[] ParseList(string? value)
+    {
+        return (value ?? string.Empty)
+            .Split(
+                [';', ',', '\r', '\n'],
+                StringSplitOptions.RemoveEmptyEntries |
+                StringSplitOptions.TrimEntries)
+            .Where(item => !item.StartsWith('#'))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private static bool ContainsWholeTag(string text, string tag)
+    {
+        if (string.IsNullOrWhiteSpace(tag))
+        {
+            return false;
+        }
+
+        var pattern = $@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(tag)}(?![\p{{L}}\p{{N}}])";
+
+        return Regex.IsMatch(
+            text,
+            pattern,
+            RegexOptions.IgnoreCase,
+            TimeSpan.FromSeconds(1));
+    }
+
+    private static bool StartsWithTag(string title, string tag)
+    {
+        if (string.IsNullOrWhiteSpace(tag))
+        {
+            return false;
+        }
+
+        var pattern = $@"^\s*[\[\(]?\s*{Regex.Escape(tag)}(?![\p{{L}}\p{{N}}])";
+
+        return Regex.IsMatch(
+            title,
+            pattern,
+            RegexOptions.IgnoreCase,
+            TimeSpan.FromSeconds(1));
     }
 }

@@ -190,6 +190,28 @@ public class ProviderConfig
     public bool EnableCatalogRules { get; set; }
 
     /// <summary>
+    /// Gets or sets catalog tags to include, separated by semicolons, commas, or new lines.
+    /// Empty means that no include filtering is applied.
+    /// </summary>
+    public string CatalogIncludedTags { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether include tags are matched against provider category names.
+    /// </summary>
+    public bool CatalogMatchProviderCategories { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether include tags are matched against movie title prefixes.
+    /// </summary>
+    public bool CatalogMatchTitlePrefixes { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the behavior when include rules exist but no include rule matches.
+    /// Supported values are Keep and Exclude.
+    /// </summary>
+    public string CatalogNoMatchBehavior { get; set; } = "Exclude";
+
+    /// <summary>
     /// Gets or sets excluded movie title prefixes, one per line.
     /// </summary>
     public string CatalogExcludedMoviePrefixes { get; set; } =
