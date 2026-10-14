@@ -773,6 +773,110 @@
                         </div>
 
                         <div class="verticalSection">
+                            <h3 class="sectionTitle">Smart Catalog Rules</h3>
+
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label class="emby-checkbox-label">
+                                    <input is="emby-checkbox" type="checkbox"
+                                           id="chkEnableCatalogRules"
+                                           name="EnableCatalogRules" />
+                                    <span>Enable Catalog Rules</span>
+                                </label>
+                                <div class="fieldDescription checkboxFieldDescription">
+                                    Filter movies before metadata lookup and STRM generation.
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused"
+                                       for="txtCatalogIncludedTags">
+                                    Include Tags
+                                </label>
+                                <textarea is="emby-textarea"
+                                          id="txtCatalogIncludedTags"
+                                          rows="3"
+                                          placeholder="DE;GER;IT"
+                                          style="width: 100%; font-family: monospace;"></textarea>
+                                <div class="fieldDescription">
+                                    Tags to keep. Separate values with semicolons, commas, or new lines.
+                                    Leave empty to disable include filtering.
+                                </div>
+                            </div>
+
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label class="emby-checkbox-label">
+                                    <input is="emby-checkbox" type="checkbox"
+                                           id="chkCatalogMatchProviderCategories" />
+                                    <span>Match Provider Categories</span>
+                                </label>
+                                <div class="fieldDescription checkboxFieldDescription">
+                                    Match include tags against the category names supplied by the provider.
+                                </div>
+                            </div>
+
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label class="emby-checkbox-label">
+                                    <input is="emby-checkbox" type="checkbox"
+                                           id="chkCatalogMatchTitlePrefixes" />
+                                    <span>Match Movie Title Prefixes</span>
+                                </label>
+                                <div class="fieldDescription checkboxFieldDescription">
+                                    Match include tags at the beginning of movie titles.
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused"
+                                       for="selCatalogNoMatchBehavior">
+                                    When No Include Tag Matches
+                                </label>
+                                <select is="emby-select"
+                                        id="selCatalogNoMatchBehavior">
+                                    <option value="Exclude">Exclude movie</option>
+                                    <option value="Keep">Keep movie</option>
+                                </select>
+                                <div class="fieldDescription">
+                                    Controls what happens when include tags are configured but none match.
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused"
+                                       for="txtCatalogExcludedMoviePrefixes">
+                                    Excluded Movie Prefixes
+                                </label>
+                                <textarea is="emby-textarea"
+                                          id="txtCatalogExcludedMoviePrefixes"
+                                          rows="6"
+                                          placeholder="EN -
+ES -
+SOC -"
+                                          style="width: 100%; font-family: monospace;"></textarea>
+                                <div class="fieldDescription">
+                                    Movie titles beginning with one of these prefixes are always excluded.
+                                    Enter one prefix per line.
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused"
+                                       for="txtCatalogExcludedMoviePatterns">
+                                    Excluded Regex Patterns
+                                </label>
+                                <textarea is="emby-textarea"
+                                          id="txtCatalogExcludedMoviePatterns"
+                                          rows="6"
+                                          placeholder="\bOlympics?\b
+\bBasketball\b"
+                                          style="width: 100%; font-family: monospace;"></textarea>
+                                <div class="fieldDescription">
+                                    .NET regular expressions matched against the movie title and provider categories.
+                                    Enter one expression per line.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="verticalSection">
                             <h3 class="sectionTitle">Metadata Matching</h3>
                             <div class="inputContainer">
                                 <label class="inputLabel inputLabelUnfocused" for="txtTmdbFolderIdOverrides">TMDb Folder ID Overrides (one per line)</label>

@@ -82,6 +82,13 @@ var XtreamLibraryConfig = (function () {
             TvdbFolderIdOverrides: '',
             CustomTitleRemoveTerms: '',
             RegexRemovalPatterns: '',
+            EnableCatalogRules: false,
+            CatalogIncludedTags: '',
+            CatalogMatchProviderCategories: true,
+            CatalogMatchTitlePrefixes: true,
+            CatalogNoMatchBehavior: 'Exclude',
+            CatalogExcludedMoviePrefixes: 'EN -\nES -\nES-DO -\nES- -\nFR -\nIT -\nAR -\nTR -\nRU -\nSOC -',
+            CatalogExcludedMoviePatterns: '\\bvs\\.?\\b\n\\bOlympics?\\b\n\\bBasketball\\b\n\\bSoccer\\b\n\\bUFC\\s+on\\b\n\\bFight\\s+Night\\b\n\\bBundesliga\\b\n\\bPremier\\s+League\\b',
             DownloadArtworkForUnmatched: true,
             FallbackToYearlessLookup: false,
             EnableProactiveMediaInfo: false,
@@ -163,6 +170,41 @@ var XtreamLibraryConfig = (function () {
         if (txtCustomTerms) txtCustomTerms.value = p.CustomTitleRemoveTerms || '';
         var txtRegexPatterns = document.getElementById('txtRegexRemovalPatterns');
         if (txtRegexPatterns) txtRegexPatterns.value = p.RegexRemovalPatterns || '';
+
+        var chkEnableCatalogRules = document.getElementById('chkEnableCatalogRules');
+        if (chkEnableCatalogRules) {
+            chkEnableCatalogRules.checked = p.EnableCatalogRules === true;
+        }
+
+        var txtCatalogIncludedTags = document.getElementById('txtCatalogIncludedTags');
+        if (txtCatalogIncludedTags) {
+            txtCatalogIncludedTags.value = p.CatalogIncludedTags || '';
+        }
+
+        var chkCatalogMatchProviderCategories = document.getElementById('chkCatalogMatchProviderCategories');
+        if (chkCatalogMatchProviderCategories) {
+            chkCatalogMatchProviderCategories.checked = p.CatalogMatchProviderCategories !== false;
+        }
+
+        var chkCatalogMatchTitlePrefixes = document.getElementById('chkCatalogMatchTitlePrefixes');
+        if (chkCatalogMatchTitlePrefixes) {
+            chkCatalogMatchTitlePrefixes.checked = p.CatalogMatchTitlePrefixes !== false;
+        }
+
+        var selCatalogNoMatchBehavior = document.getElementById('selCatalogNoMatchBehavior');
+        if (selCatalogNoMatchBehavior) {
+            selCatalogNoMatchBehavior.value = p.CatalogNoMatchBehavior || 'Exclude';
+        }
+
+        var txtCatalogExcludedMoviePrefixes = document.getElementById('txtCatalogExcludedMoviePrefixes');
+        if (txtCatalogExcludedMoviePrefixes) {
+            txtCatalogExcludedMoviePrefixes.value = p.CatalogExcludedMoviePrefixes || '';
+        }
+
+        var txtCatalogExcludedMoviePatterns = document.getElementById('txtCatalogExcludedMoviePatterns');
+        if (txtCatalogExcludedMoviePatterns) {
+            txtCatalogExcludedMoviePatterns.value = p.CatalogExcludedMoviePatterns || '';
+        }
 
         document.getElementById('txtSyncParallelism').value = p.SyncParallelism || 10;
         document.getElementById('txtCategoryBatchSize').value = p.CategoryBatchSize || 25;
@@ -269,6 +311,41 @@ var XtreamLibraryConfig = (function () {
         if (txtCustomTermsSave) p.CustomTitleRemoveTerms = txtCustomTermsSave.value;
         var txtRegexPatternsSave = document.getElementById('txtRegexRemovalPatterns');
         if (txtRegexPatternsSave) p.RegexRemovalPatterns = txtRegexPatternsSave.value;
+
+        var chkEnableCatalogRulesSave = document.getElementById('chkEnableCatalogRules');
+        if (chkEnableCatalogRulesSave) {
+            p.EnableCatalogRules = chkEnableCatalogRulesSave.checked;
+        }
+
+        var txtCatalogIncludedTagsSave = document.getElementById('txtCatalogIncludedTags');
+        if (txtCatalogIncludedTagsSave) {
+            p.CatalogIncludedTags = txtCatalogIncludedTagsSave.value;
+        }
+
+        var chkCatalogMatchProviderCategoriesSave = document.getElementById('chkCatalogMatchProviderCategories');
+        if (chkCatalogMatchProviderCategoriesSave) {
+            p.CatalogMatchProviderCategories = chkCatalogMatchProviderCategoriesSave.checked;
+        }
+
+        var chkCatalogMatchTitlePrefixesSave = document.getElementById('chkCatalogMatchTitlePrefixes');
+        if (chkCatalogMatchTitlePrefixesSave) {
+            p.CatalogMatchTitlePrefixes = chkCatalogMatchTitlePrefixesSave.checked;
+        }
+
+        var selCatalogNoMatchBehaviorSave = document.getElementById('selCatalogNoMatchBehavior');
+        if (selCatalogNoMatchBehaviorSave) {
+            p.CatalogNoMatchBehavior = selCatalogNoMatchBehaviorSave.value;
+        }
+
+        var txtCatalogExcludedMoviePrefixesSave = document.getElementById('txtCatalogExcludedMoviePrefixes');
+        if (txtCatalogExcludedMoviePrefixesSave) {
+            p.CatalogExcludedMoviePrefixes = txtCatalogExcludedMoviePrefixesSave.value;
+        }
+
+        var txtCatalogExcludedMoviePatternsSave = document.getElementById('txtCatalogExcludedMoviePatterns');
+        if (txtCatalogExcludedMoviePatternsSave) {
+            p.CatalogExcludedMoviePatterns = txtCatalogExcludedMoviePatternsSave.value;
+        }
 
         p.SyncParallelism = parseInt(document.getElementById('txtSyncParallelism').value) || 10;
         p.CategoryBatchSize = parseInt(document.getElementById('txtCategoryBatchSize').value) || 25;
