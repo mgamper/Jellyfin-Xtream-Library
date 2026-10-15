@@ -224,6 +224,43 @@ public class ProviderConfig
         "EN -\nES -\nES-DO -\nES- -\nFR -\nIT -\nAR -\nTR -\nRU -\nSOC -";
 
     /// <summary>
+    /// Gets or sets a value indicating whether catalog rules are applied to series.
+    /// </summary>
+    public bool EnableSeriesCatalogRules { get; set; }
+
+    /// <summary>
+    /// Gets or sets series tags to include, separated by semicolons, commas, or new lines.
+    /// Empty means that no include filtering is applied.
+    /// </summary>
+    public string SeriesCatalogIncludedTags { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether series tags are matched against provider categories.
+    /// </summary>
+    public bool SeriesCatalogMatchProviderCategories { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether series tags are matched against title prefixes.
+    /// </summary>
+    public bool SeriesCatalogMatchTitlePrefixes { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the behavior when series include rules exist but none match.
+    /// Supported values are Keep and Exclude.
+    /// </summary>
+    public string SeriesCatalogNoMatchBehavior { get; set; } = "Exclude";
+
+    /// <summary>
+    /// Gets or sets excluded series title prefixes, separated by semicolons, commas, or new lines.
+    /// </summary>
+    public string SeriesCatalogExcludedPrefixes { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets excluded series regular expressions, separated by semicolons or new lines.
+    /// </summary>
+    public string SeriesCatalogExcludedPatterns { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets excluded movie regular expressions, one per line.
     /// </summary>
     public string CatalogExcludedMoviePatterns { get; set; } =

@@ -261,7 +261,23 @@ public partial class StrmSyncService
                         }
                         else if (item.ItemType == "Series")
                         {
-                            await RetrySingleSeriesAsync(provider, seriesPath, item, result, cancellationToken).ConfigureAwait(false);
+                            if (!CatalogRuleFilter.ShouldRetrySeries(
+                                item.Name,
+                                item.CategoryNames,
+                                provider))
+                            {
+                                _logger.LogInformation(
+                                    "Series catalog rules: skipping retry for excluded series {SeriesName}",
+                                    item.Name);
+                                continue;
+                            }
+
+                            await RetrySingleSeriesAsync(
+                                provider,
+                                seriesPath,
+                                item,
+                                result,
+                                cancellationToken).ConfigureAwait(false);
                         }
                     }
                     catch (HttpRequestException ex) when (ex.Message.Contains("404", StringComparison.Ordinal))
@@ -285,6 +301,7 @@ public partial class StrmSyncService
                                         ItemType = "Series",
                                         ItemId = foundSeries.SeriesId,
                                         Name = foundSeries.Name,
+                                        CategoryNames = item.CategoryNames,
                                     };
                                     await RetrySingleSeriesAsync(provider, seriesPath, newItem, result, cancellationToken).ConfigureAwait(false);
                                 }
@@ -297,6 +314,7 @@ public partial class StrmSyncService
                                         ItemType = "Series",
                                         ItemId = foundSeries.SeriesId,
                                         Name = foundSeries.Name,
+                                        CategoryNames = item.CategoryNames,
                                         ErrorMessage = retryEx.Message,
                                     });
                                 }
@@ -312,6 +330,7 @@ public partial class StrmSyncService
                                     ItemType = item.ItemType,
                                     ItemId = item.ItemId,
                                     Name = item.Name,
+                                    CategoryNames = item.CategoryNames,
                                     ErrorMessage = "404 Not Found (provider may be temporarily unavailable)",
                                 });
                             }
@@ -340,6 +359,7 @@ public partial class StrmSyncService
                             ItemType = item.ItemType,
                             ItemId = item.ItemId,
                             Name = item.Name,
+                            CategoryNames = item.CategoryNames,
                             SeriesId = item.SeriesId,
                             SeasonNumber = item.SeasonNumber,
                             EpisodeNumber = item.EpisodeNumber,
@@ -3022,6 +3042,35 @@ public partial class StrmSyncService
 
             _logger.LogInformation("Batch {Batch}: Found {Count} unique series", batchIndex + 1, batchSeries.Count);
 
+            // Apply series catalog rules before snapshot tracking and get_series_info requests.
+            var seriesCategoryNamesById = categories.ToDictionary(
+                category => category.CategoryId,
+                category => category.CategoryName);
+
+            int beforeSeriesCatalogFilter = batchSeries.Count;
+
+            batchSeries = batchSeries
+                .Where(entry => CatalogRuleFilter.ShouldIncludeSeries(
+                    entry.Series.Name,
+                    entry.CategoryIds.Select(categoryId =>
+                        seriesCategoryNamesById.TryGetValue(categoryId, out var categoryName)
+                            ? categoryName
+                            : string.Empty),
+                    provider))
+                .ToList();
+
+            int excludedBySeriesCatalogRules =
+                beforeSeriesCatalogFilter - batchSeries.Count;
+
+            if (excludedBySeriesCatalogRules > 0)
+            {
+                _logger.LogInformation(
+                    "Series catalog rules: included {Included} series and excluded {Excluded} series in batch {Batch}",
+                    batchSeries.Count,
+                    excludedBySeriesCatalogRules,
+                    batchIndex + 1);
+            }
+
             // Track all collected series for snapshot building
             foreach (var (series, _) in batchSeries)
             {
@@ -3721,6 +3770,16 @@ public partial class StrmSyncService
                         ItemType = "Series",
                         ItemId = series.SeriesId,
                         Name = series.Name,
+                        CategoryNames = categoryIds
+                            .Select(categoryId =>
+                                seriesCategoryNamesById.TryGetValue(
+                                    categoryId,
+                                    out var categoryName)
+                                    ? categoryName
+                                    : string.Empty)
+                            .Where(categoryName =>
+                                !string.IsNullOrWhiteSpace(categoryName))
+                            .ToArray(),
                         ErrorMessage = ex.Message,
                     });
                 }
@@ -5667,6 +5726,12 @@ public class FailedItem
     /// Gets or sets the item name.
     /// </summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the provider category names associated with the item.
+    /// Empty for failed items created by older plugin versions.
+    /// </summary>
+    public string[] CategoryNames { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the series ID (for episodes).

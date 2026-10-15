@@ -106,6 +106,196 @@ internal static class CatalogRuleFilter
             StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Determines whether a series should continue through the sync pipeline.
+    /// </summary>
+    /// <param name="title">Original provider title.</param>
+    /// <param name="categoryNames">Provider categories containing the series.</param>
+    /// <param name="provider">Provider-specific series catalog configuration.</param>
+    /// <returns>True when the series should be included.</returns>
+    internal static bool ShouldIncludeSeries(
+        string? title,
+        IEnumerable<string?> categoryNames,
+        ProviderConfig provider)
+    {
+        if (!provider.EnableSeriesCatalogRules)
+        {
+            return true;
+        }
+
+        var value = title?.Trim() ?? string.Empty;
+        if (value.Length == 0)
+        {
+            return false;
+        }
+
+        var categories = categoryNames
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name!.Trim())
+            .ToArray();
+
+        var excludedPrefixes = ParseList(
+            provider.SeriesCatalogExcludedPrefixes);
+
+        if (excludedPrefixes.Any(prefix =>
+            value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        var searchableText = string.Join(
+            " ",
+            new[] { value }.Concat(categories));
+
+        foreach (var pattern in ParseList(
+            provider.SeriesCatalogExcludedPatterns))
+        {
+            try
+            {
+                if (Regex.IsMatch(
+                    searchableText,
+                    pattern,
+                    RegexOptions.IgnoreCase,
+                    TimeSpan.FromSeconds(1)))
+                {
+                    return false;
+                }
+            }
+            catch (ArgumentException)
+            {
+                // Ignore invalid user-supplied regular expressions.
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                // A pathological expression must not stop the sync.
+            }
+        }
+
+        var includedTags = ParseList(
+            provider.SeriesCatalogIncludedTags);
+
+        if (includedTags.Length == 0)
+        {
+            return true;
+        }
+
+        bool includeMatch = false;
+
+        if (provider.SeriesCatalogMatchProviderCategories)
+        {
+            includeMatch = categories.Any(category =>
+                includedTags.Any(tag =>
+                    ContainsWholeTag(category, tag)));
+        }
+
+        if (!includeMatch &&
+            provider.SeriesCatalogMatchTitlePrefixes)
+        {
+            includeMatch = includedTags.Any(tag =>
+                StartsWithTag(value, tag));
+        }
+
+        if (includeMatch)
+        {
+            return true;
+        }
+
+        return provider.SeriesCatalogNoMatchBehavior.Equals(
+            "Keep",
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Determines whether a failed series should be retried.
+    /// </summary>
+    /// <param name="title">Original provider title.</param>
+    /// <param name="categoryNames">Stored provider category names.</param>
+    /// <param name="provider">Provider-specific series catalog configuration.</param>
+    /// <returns>True when the failed series should be retried.</returns>
+    internal static bool ShouldRetrySeries(
+        string? title,
+        IEnumerable<string?> categoryNames,
+        ProviderConfig provider)
+    {
+        var categories = categoryNames
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name!.Trim())
+            .ToArray();
+
+        if (categories.Length > 0)
+        {
+            return ShouldIncludeSeries(title, categories, provider);
+        }
+
+        if (!provider.EnableSeriesCatalogRules)
+        {
+            return true;
+        }
+
+        var value = title?.Trim() ?? string.Empty;
+        if (value.Length == 0)
+        {
+            return false;
+        }
+
+        if (ParseList(provider.SeriesCatalogExcludedPrefixes)
+            .Any(prefix => value.StartsWith(
+                prefix,
+                StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        foreach (var pattern in ParseList(
+            provider.SeriesCatalogExcludedPatterns))
+        {
+            try
+            {
+                if (Regex.IsMatch(
+                    value,
+                    pattern,
+                    RegexOptions.IgnoreCase,
+                    TimeSpan.FromSeconds(1)))
+                {
+                    return false;
+                }
+            }
+            catch (ArgumentException)
+            {
+                // Ignore invalid user-supplied regular expressions.
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                // A pathological expression must not stop the retry.
+            }
+        }
+
+        var includedTags = ParseList(
+            provider.SeriesCatalogIncludedTags);
+
+        if (includedTags.Length == 0)
+        {
+            return true;
+        }
+
+        if (provider.SeriesCatalogMatchTitlePrefixes &&
+            includedTags.Any(tag => StartsWithTag(value, tag)))
+        {
+            return true;
+        }
+
+        if (!provider.SeriesCatalogMatchProviderCategories)
+        {
+            return provider.SeriesCatalogNoMatchBehavior.Equals(
+                "Keep",
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Older failed items have no stored category names. Keep them
+        // eligible unless their title clearly matches an exclusion rule.
+        return true;
+    }
+
     private static string[] ParseList(string? value)
     {
         return (value ?? string.Empty)

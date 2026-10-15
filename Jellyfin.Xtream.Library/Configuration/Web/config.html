@@ -894,6 +894,89 @@ SOC -"
                         </div>
 
                         <div class="verticalSection">
+                            <h3 class="sectionTitle">Smart Series Catalog Rules</h3>
+
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label class="emby-checkbox-label">
+                                    <input is="emby-checkbox" type="checkbox"
+                                           id="chkEnableSeriesCatalogRules" />
+                                    <span>Enable Series Catalog Rules</span>
+                                </label>
+                                <div class="fieldDescription checkboxFieldDescription">
+                                    Filter series before detailed series and episode information is requested
+                                    from the provider. This can significantly reduce provider API requests.
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused"
+                                       for="txtSeriesCatalogIncludedTags">Include Tags</label>
+                                <textarea is="emby-textarea"
+                                          id="txtSeriesCatalogIncludedTags"
+                                          rows="3"
+                                          style="width: 100%;"
+                                          placeholder="DE; GER; IT"></textarea>
+                                <div class="fieldDescription">
+                                    Include series matching these tags. Separate entries with semicolons,
+                                    commas, or new lines. Leave empty to disable include filtering.
+                                </div>
+                            </div>
+
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label class="emby-checkbox-label">
+                                    <input is="emby-checkbox" type="checkbox"
+                                           id="chkSeriesCatalogMatchProviderCategories" />
+                                    <span>Match Provider Categories</span>
+                                </label>
+                            </div>
+
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label class="emby-checkbox-label">
+                                    <input is="emby-checkbox" type="checkbox"
+                                           id="chkSeriesCatalogMatchTitlePrefixes" />
+                                    <span>Match Series Title Prefixes</span>
+                                </label>
+                            </div>
+
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused"
+                                       for="selSeriesCatalogNoMatchBehavior">When No Include Tag Matches</label>
+                                <select is="emby-select"
+                                        id="selSeriesCatalogNoMatchBehavior">
+                                    <option value="Exclude">Exclude series</option>
+                                    <option value="Keep">Keep series</option>
+                                </select>
+                            </div>
+
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused"
+                                       for="txtSeriesCatalogExcludedPrefixes">Excluded Series Prefixes</label>
+                                <textarea is="emby-textarea"
+                                          id="txtSeriesCatalogExcludedPrefixes"
+                                          rows="4"
+                                          style="width: 100%;"
+                                          placeholder="AR -&#10;ES -&#10;FR -"></textarea>
+                                <div class="fieldDescription">
+                                    Series whose titles start with one of these values are excluded.
+                                    Separate entries with semicolons, commas, or new lines.
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused"
+                                       for="txtSeriesCatalogExcludedPatterns">Excluded Regex Patterns</label>
+                                <textarea is="emby-textarea"
+                                          id="txtSeriesCatalogExcludedPatterns"
+                                          rows="4"
+                                          style="width: 100%; font-family: monospace;"></textarea>
+                                <div class="fieldDescription">
+                                    Optional regular expressions used to exclude series. One expression
+                                    per line or separate expressions with semicolons.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="verticalSection">
                             <h3 class="sectionTitle">Metadata Matching</h3>
                             <div class="inputContainer">
                                 <label class="inputLabel inputLabelUnfocused" for="txtTmdbFolderIdOverrides">TMDb Folder ID Overrides (one per line)</label>

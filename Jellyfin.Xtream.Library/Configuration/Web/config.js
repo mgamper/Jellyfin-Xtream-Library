@@ -79,6 +79,13 @@ var XtreamLibraryConfig = (function () {
             SeriesCategoriesMode: 'Include',
             MovieFolderMappings: '',
             SeriesFolderMappings: '',
+            EnableSeriesCatalogRules: false,
+            SeriesCatalogIncludedTags: '',
+            SeriesCatalogMatchProviderCategories: true,
+            SeriesCatalogMatchTitlePrefixes: true,
+            SeriesCatalogNoMatchBehavior: 'Exclude',
+            SeriesCatalogExcludedPrefixes: '',
+            SeriesCatalogExcludedPatterns: '',
             TmdbFolderIdOverrides: '',
             TvdbFolderIdOverrides: '',
             CustomTitleRemoveTerms: '',
@@ -165,6 +172,51 @@ var XtreamLibraryConfig = (function () {
 
         document.getElementById('selMovieCategoriesMode').value = p.MovieCategoriesMode || 'Include';
         document.getElementById('selSeriesCategoriesMode').value = p.SeriesCategoriesMode || 'Include';
+
+        var chkEnableSeriesCatalogRules = document.getElementById('chkEnableSeriesCatalogRules');
+        if (chkEnableSeriesCatalogRules) {
+            chkEnableSeriesCatalogRules.checked = p.EnableSeriesCatalogRules === true;
+        }
+
+        var txtSeriesCatalogIncludedTags = document.getElementById('txtSeriesCatalogIncludedTags');
+        if (txtSeriesCatalogIncludedTags) {
+            txtSeriesCatalogIncludedTags.value = p.SeriesCatalogIncludedTags || '';
+        }
+
+        var chkSeriesCatalogMatchProviderCategories =
+            document.getElementById('chkSeriesCatalogMatchProviderCategories');
+        if (chkSeriesCatalogMatchProviderCategories) {
+            chkSeriesCatalogMatchProviderCategories.checked =
+                p.SeriesCatalogMatchProviderCategories !== false;
+        }
+
+        var chkSeriesCatalogMatchTitlePrefixes =
+            document.getElementById('chkSeriesCatalogMatchTitlePrefixes');
+        if (chkSeriesCatalogMatchTitlePrefixes) {
+            chkSeriesCatalogMatchTitlePrefixes.checked =
+                p.SeriesCatalogMatchTitlePrefixes !== false;
+        }
+
+        var selSeriesCatalogNoMatchBehavior =
+            document.getElementById('selSeriesCatalogNoMatchBehavior');
+        if (selSeriesCatalogNoMatchBehavior) {
+            selSeriesCatalogNoMatchBehavior.value =
+                p.SeriesCatalogNoMatchBehavior || 'Exclude';
+        }
+
+        var txtSeriesCatalogExcludedPrefixes =
+            document.getElementById('txtSeriesCatalogExcludedPrefixes');
+        if (txtSeriesCatalogExcludedPrefixes) {
+            txtSeriesCatalogExcludedPrefixes.value =
+                p.SeriesCatalogExcludedPrefixes || '';
+        }
+
+        var txtSeriesCatalogExcludedPatterns =
+            document.getElementById('txtSeriesCatalogExcludedPatterns');
+        if (txtSeriesCatalogExcludedPatterns) {
+            txtSeriesCatalogExcludedPatterns.value =
+                p.SeriesCatalogExcludedPatterns || '';
+        }
 
         self.vodFolderDefinitions = self.parseFolderMappings(p.MovieFolderMappings);
         self.seriesFolderDefinitions = self.parseFolderMappings(p.SeriesFolderMappings);
@@ -267,6 +319,55 @@ var XtreamLibraryConfig = (function () {
             p.LightweightMovieSync = chkLightweightMovieSyncSave.checked;
         }
         p.SyncSeries = document.getElementById('chkSyncSeries').checked;
+
+        var chkEnableSeriesCatalogRulesSave =
+            document.getElementById('chkEnableSeriesCatalogRules');
+        if (chkEnableSeriesCatalogRulesSave) {
+            p.EnableSeriesCatalogRules =
+                chkEnableSeriesCatalogRulesSave.checked;
+        }
+
+        var txtSeriesCatalogIncludedTagsSave =
+            document.getElementById('txtSeriesCatalogIncludedTags');
+        if (txtSeriesCatalogIncludedTagsSave) {
+            p.SeriesCatalogIncludedTags =
+                txtSeriesCatalogIncludedTagsSave.value;
+        }
+
+        var chkSeriesCatalogMatchProviderCategoriesSave =
+            document.getElementById('chkSeriesCatalogMatchProviderCategories');
+        if (chkSeriesCatalogMatchProviderCategoriesSave) {
+            p.SeriesCatalogMatchProviderCategories =
+                chkSeriesCatalogMatchProviderCategoriesSave.checked;
+        }
+
+        var chkSeriesCatalogMatchTitlePrefixesSave =
+            document.getElementById('chkSeriesCatalogMatchTitlePrefixes');
+        if (chkSeriesCatalogMatchTitlePrefixesSave) {
+            p.SeriesCatalogMatchTitlePrefixes =
+                chkSeriesCatalogMatchTitlePrefixesSave.checked;
+        }
+
+        var selSeriesCatalogNoMatchBehaviorSave =
+            document.getElementById('selSeriesCatalogNoMatchBehavior');
+        if (selSeriesCatalogNoMatchBehaviorSave) {
+            p.SeriesCatalogNoMatchBehavior =
+                selSeriesCatalogNoMatchBehaviorSave.value;
+        }
+
+        var txtSeriesCatalogExcludedPrefixesSave =
+            document.getElementById('txtSeriesCatalogExcludedPrefixes');
+        if (txtSeriesCatalogExcludedPrefixesSave) {
+            p.SeriesCatalogExcludedPrefixes =
+                txtSeriesCatalogExcludedPrefixesSave.value;
+        }
+
+        var txtSeriesCatalogExcludedPatternsSave =
+            document.getElementById('txtSeriesCatalogExcludedPatterns');
+        if (txtSeriesCatalogExcludedPatternsSave) {
+            p.SeriesCatalogExcludedPatterns =
+                txtSeriesCatalogExcludedPatternsSave.value;
+        }
         p.CleanupOrphans = document.getElementById('chkCleanupOrphans').checked;
         var orphanSafetyThresholdValue = parseInt(document.getElementById('txtOrphanSafetyThreshold').value);
         p.OrphanSafetyThreshold = (isNaN(orphanSafetyThresholdValue) ? 20 : orphanSafetyThresholdValue) / 100;
