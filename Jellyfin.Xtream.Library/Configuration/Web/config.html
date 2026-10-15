@@ -569,14 +569,14 @@
                                     </div>
                                 </div>
                                 <div class="inputContainer">
-                                    <label class="inputLabel inputLabelUnfocused" for="txtRequestDelayMs">Provider Request Delay</label>
-                                    <select is="emby-select" id="txtRequestDelayMs" name="RequestDelayMs">
-                                        <option value="0">0 ms - No additional delay</option>
-                                        <option value="50">50 ms - Default</option>
-                                        <option value="200">200 ms - Gentle</option>
-                                        <option value="500">500 ms - Conservative</option>
-                                        <option value="1000">1000 ms - Very conservative</option>
-                                    </select>
+                                    <label class="inputLabel inputLabelUnfocused" for="txtRequestDelayMs">Provider Request Delay (ms)</label>
+                            <input is="emby-input"
+                                   type="number"
+                                   id="txtRequestDelayMs"
+                                   name="RequestDelayMs"
+                                   min="0"
+                                   max="5000"
+                                   step="50" />
                                     <div class="fieldDescription">
                                         Adds a minimum gap between provider API requests to reduce server load.
                                         Increase this if large syncs cause HTTP 403, 429 or 502 errors, timeouts,
@@ -804,6 +804,13 @@
                                 </div>
                             </div>
 
+                            <div class="fieldDescription" style="padding: 0.8em; border-left: 4px solid #f0ad4e; margin-bottom: 1em;">
+                                <strong>Cleanup warning:</strong>
+                                Movies excluded by these rules are not added to the synchronization snapshot.
+                                If orphan cleanup is enabled, existing STRM files for excluded movies can be
+                                removed during the next successful synchronization.
+                            </div>
+
                             <div class="inputContainer">
                                 <label class="inputLabel inputLabelUnfocused"
                                        for="txtCatalogIncludedTags">
@@ -1002,6 +1009,13 @@ SOC -"
                                     Filter series before detailed series and episode information is requested
                                     from the provider. This can significantly reduce provider API requests.
                                 </div>
+                            </div>
+
+                            <div class="fieldDescription" style="padding: 0.8em; border-left: 4px solid #f0ad4e; margin-bottom: 1em;">
+                                <strong>Cleanup warning:</strong>
+                                Series excluded by these rules are not added to the synchronization snapshot.
+                                If orphan cleanup is enabled, existing STRM files for excluded series can be
+                                removed during the next successful synchronization.
                             </div>
 
                             <div class="inputContainer">
