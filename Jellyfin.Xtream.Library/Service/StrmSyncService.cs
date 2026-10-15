@@ -1804,6 +1804,10 @@ public partial class StrmSyncService
         // Build the per-provider VOD exclusion set once; read-only inside the parallel fetch.
         var excludedVodSet = ContentExclusionFilter.BuildSet(provider.ExcludedVodStreamIds);
 
+        int totalMoviesBeforeCatalogRules = 0;
+        int totalMoviesIncludedByCatalogRules = 0;
+        int totalMoviesExcludedByCatalogRules = 0;
+
         // Process categories in batches to reduce memory usage
         for (int batchIndex = 0; batchIndex < totalBatches; batchIndex++)
         {
@@ -1899,6 +1903,10 @@ public partial class StrmSyncService
                 .ToList();
 
             int excludedByCatalogRules = beforeCatalogFilter - batchMovies.Count;
+
+            totalMoviesBeforeCatalogRules += beforeCatalogFilter;
+            totalMoviesIncludedByCatalogRules += batchMovies.Count;
+            totalMoviesExcludedByCatalogRules += excludedByCatalogRules;
 
             if (excludedByCatalogRules > 0)
             {
@@ -2728,6 +2736,26 @@ public partial class StrmSyncService
             streamBag = null!;
         } // End of batch loop
 
+        if (provider.EnableCatalogRules)
+        {
+            _logger.LogInformation(
+                "Movie catalog rules summary for provider {Provider}: received {Received}, included {Included}, excluded {Excluded}",
+                provider.Name,
+                totalMoviesBeforeCatalogRules,
+                totalMoviesIncludedByCatalogRules,
+                totalMoviesExcludedByCatalogRules);
+
+            if (totalMoviesBeforeCatalogRules > 0 &&
+                totalMoviesExcludedByCatalogRules / (double)totalMoviesBeforeCatalogRules >= 0.20)
+            {
+                _logger.LogWarning(
+                    "Movie catalog rules excluded {Excluded} of {Received} movies for provider {Provider}. Existing STRM files may be considered orphans; the configured orphan cleanup safety checks still apply.",
+                    totalMoviesExcludedByCatalogRules,
+                    totalMoviesBeforeCatalogRules,
+                    provider.Name);
+            }
+        }
+
         // Update result with thread-safe counters
         result.MoviesCreated += moviesCreated;
         result.MoviesUpdated += moviesUpdated;
@@ -2962,6 +2990,10 @@ public partial class StrmSyncService
         // Build the per-provider Series exclusion set once; read-only inside the parallel fetch.
         var excludedSeriesSet = ContentExclusionFilter.BuildSet(provider.ExcludedSeriesIds);
 
+        int totalSeriesBeforeCatalogRules = 0;
+        int totalSeriesIncludedByCatalogRules = 0;
+        int totalSeriesExcludedByCatalogRules = 0;
+
         // Process categories in batches to reduce memory usage
         for (int batchIndex = 0; batchIndex < totalBatches; batchIndex++)
         {
@@ -3061,6 +3093,10 @@ public partial class StrmSyncService
 
             int excludedBySeriesCatalogRules =
                 beforeSeriesCatalogFilter - batchSeries.Count;
+
+            totalSeriesBeforeCatalogRules += beforeSeriesCatalogFilter;
+            totalSeriesIncludedByCatalogRules += batchSeries.Count;
+            totalSeriesExcludedByCatalogRules += excludedBySeriesCatalogRules;
 
             if (excludedBySeriesCatalogRules > 0)
             {
@@ -3799,6 +3835,26 @@ public partial class StrmSyncService
             directoryCache.Clear();
             seriesBag = null!;
         } // End of batch loop
+
+        if (provider.EnableSeriesCatalogRules)
+        {
+            _logger.LogInformation(
+                "Series catalog rules summary for provider {Provider}: received {Received}, included {Included}, excluded {Excluded}",
+                provider.Name,
+                totalSeriesBeforeCatalogRules,
+                totalSeriesIncludedByCatalogRules,
+                totalSeriesExcludedByCatalogRules);
+
+            if (totalSeriesBeforeCatalogRules > 0 &&
+                totalSeriesExcludedByCatalogRules / (double)totalSeriesBeforeCatalogRules >= 0.20)
+            {
+                _logger.LogWarning(
+                    "Series catalog rules excluded {Excluded} of {Received} series for provider {Provider}. Existing STRM files may be considered orphans; the configured orphan cleanup safety checks still apply.",
+                    totalSeriesExcludedByCatalogRules,
+                    totalSeriesBeforeCatalogRules,
+                    provider.Name);
+            }
+        }
 
         // Update result with thread-safe counters
         result.SeriesCreated += seriesCreated;
